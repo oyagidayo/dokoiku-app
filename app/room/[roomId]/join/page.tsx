@@ -7,10 +7,7 @@ export default async function JoinPage({ params }: { params: Promise<{ roomId: s
             <main className="w-full max-w-md bg-white p-8 rounded-xl shadow-sm text-center">
                 <h1 className="text-2xl font-bold text-gray-900 mb-6">ルームに参加</h1>
                 <div className="space-y-4">
-                    <div>
-                        <label className="block text-left text-sm font-medium text-gray-700 mb-1">ニックネーム</label>
-                        <input type="text" placeholder="例：たなか" className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none" />
-                    </div>
+
 
                     <Link
                         href={`/room/${roomId}/vote`}

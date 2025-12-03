@@ -25,16 +25,6 @@ export default function HostPage() {
                             <option>5,000円~</option>
                         </select>
                     </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">今の気分</label>
-                        <div className="grid grid-cols-2 gap-2">
-                            <button className="border border-gray-300 rounded-lg p-2 text-sm hover:bg-gray-50">ガッツリ</button>
-                            <button className="border border-gray-300 rounded-lg p-2 text-sm hover:bg-gray-50">さっぱり</button>
-                            <button className="border border-gray-300 rounded-lg p-2 text-sm hover:bg-gray-50">おしゃれ</button>
-                            <button className="border border-gray-300 rounded-lg p-2 text-sm hover:bg-gray-50">ワイワイ</button>
-                        </div>
-                    </div>
                 </div>
 
                 <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-transform transform active:scale-95 text-lg">
