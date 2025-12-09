@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { rooms } from '@/app/lib/store';
+import { saveRoom } from '@/app/lib/kv';
 
 const HOTPEPPER_API_ENDPOINT = 'http://webservice.recruit.co.jp/hotpepper/gourmet/v1/';
 
@@ -36,13 +36,15 @@ export async function POST(request: Request) {
         const shops = data.results.shop;
         const roomId = Math.random().toString(36).substring(2, 10);
 
-        rooms[roomId] = {
+        const roomData = {
             id: roomId,
             conditions: { area, budget },
             shops: shops,
             votes: {}, // userId -> { shopId -> vote }
             participants: []
         };
+
+        await saveRoom(roomId, roomData);
 
         return NextResponse.json({ roomId });
 
