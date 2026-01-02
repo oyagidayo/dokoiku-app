@@ -12,7 +12,19 @@ export async function GET() {
     }
 
     try {
-        const redis = new Redis(redisUrl);
+        // Force options for debugging
+        const options = {
+            tls: { rejectUnauthorized: false },
+            maxRetriesPerRequest: null,
+            retryStrategy: (times: number) => Math.min(times * 50, 2000)
+        };
+
+        console.log('--- DEBUG CONNECTION ---');
+        console.log('REDIS_URL:', redisUrl.replace(/(:)[^:@]*@/, '$1***@'));
+        console.log('Options:', options);
+        console.log('------------------------');
+
+        const redis = new Redis(redisUrl, options as any);
 
         // Test Write
         const testKey = 'connection_test_' + Date.now();

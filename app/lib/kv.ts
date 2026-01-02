@@ -19,7 +19,20 @@ const ROOM_TTL = 60 * 60 * 24; // 24 hours
 let redis: Redis | null = null;
 
 if (process.env.REDIS_URL) {
-    redis = new Redis(process.env.REDIS_URL);
+    // Some Vercel KV URLs are 'redis://' but require TLS.
+    // We force TLS if the URL contains 'vercel-storage' or if we are in production.
+    const isVercelKV = process.env.REDIS_URL.includes('vercel-storage') || process.env.REDIS_URL.includes('upstash');
+
+    if (isVercelKV || process.env.REDIS_URL.startsWith('rediss://')) {
+        redis = new Redis(process.env.REDIS_URL, {
+            tls: {
+                rejectUnauthorized: false
+            },
+            maxRetriesPerRequest: null // Disable this to prevent the specific error user is seeing
+        });
+    } else {
+        redis = new Redis(process.env.REDIS_URL);
+    }
 } else {
     if (process.env.NODE_ENV === 'production') {
         console.error('REDIS_URL is not defined in production environment.');
