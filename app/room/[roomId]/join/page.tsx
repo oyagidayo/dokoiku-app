@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import ShareButton from '@/app/components/ShareButton';
 
 export default async function JoinPage({ params }: { params: Promise<{ roomId: string }> }) {
     const { roomId } = await params;
@@ -7,7 +8,7 @@ export default async function JoinPage({ params }: { params: Promise<{ roomId: s
             <main className="w-full max-w-md bg-white p-8 rounded-xl shadow-sm text-center">
                 <h1 className="text-2xl font-bold text-gray-900 mb-6">ルームに参加</h1>
                 <div className="space-y-4">
-
+                    <ShareButton />
 
                     <Link
                         href={`/room/${roomId}/vote`}
