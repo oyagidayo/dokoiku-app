@@ -1,8 +1,8 @@
 import Redis from 'ioredis';
 
 // Type definitions (reused from store/logic)
-export type VoteType = 'super_yes' | 'like' | 'no';
-export type UserVotes = Record<string, VoteType>; // shopId -> voteType
+export type VoteType = number;
+export type UserVotes = Record<string, VoteType>; // shopId -> score
 export type RoomVotes = Record<string, UserVotes>; // userId -> UserVotes
 
 export type RoomData = {

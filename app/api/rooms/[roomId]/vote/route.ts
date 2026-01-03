@@ -7,10 +7,10 @@ export async function POST(
 ) {
     const { roomId } = await params;
     const body = await request.json();
-    const { userId, shopId, voteType } = body;
+    const { userId, shopId, score } = body;
 
     try {
-        await addVote(roomId, userId, shopId, voteType);
+        await addVote(roomId, userId, shopId, score);
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error('Vote failed:', error);

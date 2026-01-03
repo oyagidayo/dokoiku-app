@@ -1,25 +1,20 @@
 
-export type VoteType = 'super_yes' | 'like' | 'no';
 
-export type UserVotes = Record<string, VoteType>; // shopId -> voteType
+export type VoteScore = number; // 0 to 100
+
+export type UserVotes = Record<string, VoteScore>; // shopId -> score
 export type RoomVotes = Record<string, UserVotes>; // userId -> UserVotes
 
-export const VOTE_SCORES = {
-    super_yes: 5,
-    like: 3,
-    no: -1,
-};
-
 // Configuration
-// TODO: Change to 15 for production
 export const MIN_VOTES_FOR_A = 3;
-export const A_THRESHOLD = 0.7;
-export const A_PENALTY = 10.0;
+export const A_THRESHOLD = 0.7; // Kept for logic if needed, but logic below changes
+export const A_PENALTY = 50.0; // Penalty score for A's dislike
+export const NEGATIVE_SCORE_THRESHOLD = 25; // Scores <= this are considered "No"
 
 export interface AAnalysisResult {
     aUserId: string | null;
     maxAScore: number;
-    details: Record<string, { negRate: number; superRate: number; aScore: number; voteCount: number }>;
+    details: Record<string, { negRate: number; avgScore: number; aScore: number; voteCount: number }>;
 }
 
 export function identifyA(votes: RoomVotes): AAnalysisResult {
@@ -31,21 +26,23 @@ export function identifyA(votes: RoomVotes): AAnalysisResult {
         const voteCount = Object.keys(userVotes).length;
 
         let badCount = 0;
-        let superCount = 0;
+        let totalScore = 0;
 
-        Object.values(userVotes).forEach(vote => {
-            if (vote === 'no') badCount++;
-            if (vote === 'super_yes') superCount++;
+        Object.values(userVotes).forEach(score => {
+            if (score <= NEGATIVE_SCORE_THRESHOLD) badCount++;
+            totalScore += score;
         });
 
         const negRate = voteCount > 0 ? badCount / voteCount : 0;
-        const superRate = voteCount > 0 ? superCount / voteCount : 0;
+        const avgScore = voteCount > 0 ? totalScore / voteCount : 0;
 
         // A-score calculation
-        // A_score_u = 0.6 * neg_rate_u + 0.4 * (1 - super_rate_u)
-        const aScore = (0.6 * negRate) + (0.4 * (1 - superRate));
+        // High Negative Rate = High A Score
+        // Low Average Score = High A Score
+        // A_score = 0.7 * negRate + 0.3 * (1 - avgScore/100)
+        const aScore = (0.7 * negRate) + (0.3 * (1 - avgScore / 100));
 
-        details[userId] = { negRate, superRate, aScore, voteCount };
+        details[userId] = { negRate, avgScore, aScore, voteCount };
 
         if (voteCount >= MIN_VOTES_FOR_A) {
             if (aScore > maxAScore) {
@@ -55,8 +52,9 @@ export function identifyA(votes: RoomVotes): AAnalysisResult {
         }
     });
 
-    // Check threshold
-    if (maxAScore < A_THRESHOLD) {
+    // Check threshold (e.g., must have > 0.4 A-score to be considered A)
+    // Adjusting roughly based on previous logic
+    if (maxAScore < 0.4) {
         aUserId = null;
     }
 
@@ -68,24 +66,22 @@ export interface ShopScore {
     baseScore: number; // Average score
     finalScore: number; // After penalty
     penaltyApplied: boolean;
-    voteCounts: { super_yes: number; like: number; no: number };
+    voteCount: number;
 }
 
 export function calculateShopScores(shops: any[], votes: RoomVotes, aUserId: string | null): ShopScore[] {
     return shops.map(shop => {
         let totalScore = 0;
         let count = 0;
-        const voteCounts = { super_yes: 0, like: 0, no: 0 };
         let aVotedNo = false;
 
         Object.entries(votes).forEach(([userId, userVotes]) => {
-            const vote = userVotes[shop.id];
-            if (vote) {
-                totalScore += VOTE_SCORES[vote];
+            const score = userVotes[shop.id];
+            if (typeof score === 'number') {
+                totalScore += score;
                 count++;
-                voteCounts[vote]++;
 
-                if (userId === aUserId && vote === 'no') {
+                if (userId === aUserId && score <= NEGATIVE_SCORE_THRESHOLD) {
                     aVotedNo = true;
                 }
             }
@@ -103,7 +99,7 @@ export function calculateShopScores(shops: any[], votes: RoomVotes, aUserId: str
             baseScore,
             finalScore,
             penaltyApplied: aVotedNo,
-            voteCounts
+            voteCount: count
         };
     });
 }
